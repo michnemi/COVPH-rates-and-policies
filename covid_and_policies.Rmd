@@ -1,0 +1,54 @@
+---
+title: "Investigating Philippines' Covid19 Cases and Policies"
+author: "Michelle Nemiada"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_notebook:
+    toc: true # table of content true
+    toc_depth: 3  # upto three depths of headings (specified by #, ## and ###)
+    # number_sections: true  ## if you want number sections at each table header
+    theme: spacelab  
+    highlight: tango  # specifies the syntax highlighting style
+    # css: my.css   # you can add your custom css, should be in same folder
+---
+
+# Load Data
+Load preprocessed data (cleaned in Python).
+```{r load-data-lib}
+library(tidyverse)
+library(dplyr)
+library(corpcor)
+library(lmtest)
+data <- read.csv("../term_paper/covid_cases_daily_2.csv")
+
+head(data)
+```
+
+# Fit an OLS model
+```{r model}
+# model<- growth_rate~travel.ban+travel.ban.lift
+model<- growth_rate~travel.ban+travel.ban.lift+ease+postpone+aid+protocol+testing+reopen+reporting.change
+fit<- lm(model, data)
+summary(fit)
+```
+
+## Check OLS assumptions
+```{r ANOVA}
+par(mfrow=c(2,2))
+plot(fit)
+```
+## Compute correlations - check for multicollinearity
+```{r correlations}
+cor2pcor(cov(data[, c("travel.ban", "travel.ban.lift", "ease","postpone","aid","protocol","testing","reopen","reporting.change")]))
+
+library(ppcor)
+pcor(data[, c("travel.ban", "travel.ban.lift")],
+     method='pearson')
+```
+## Test for homogeneity
+```{r tests}
+bptest(fit)
+```
+
+
+
